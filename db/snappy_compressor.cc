@@ -1,6 +1,6 @@
 #include "port/port.h"
 
-#ifdef HAVE_SNAPPY
+#if HAVE_SNAPPY
 
 #include <snappy.h>
 

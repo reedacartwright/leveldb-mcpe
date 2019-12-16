@@ -785,7 +785,7 @@ TEST(TableTest, ApproximateOffsetOfPlain) {
 }
 
 static bool SnappyCompressionSupported() {
-#ifdef HAVE_SNAPPY
+#if HAVE_SNAPPY
   std::string out;
   Slice in = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   return port::Snappy_Compress(in.data(), in.size(), &out);
@@ -811,7 +811,7 @@ TEST(TableTest, ApproximateOffsetOfCompressed) {
   KVMap kvmap;
   Options options;
   options.block_size = 1024;
-#ifdef HAVE_SNAPPY  
+#if HAVE_SNAPPY  
   options.compressors[0] = new leveldb::SnappyCompressor();
 #endif
   c.Finish(options, &keys, &kvmap);
