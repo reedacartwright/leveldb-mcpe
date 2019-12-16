@@ -330,7 +330,7 @@ if(LEVELDB_BUILD_TESTS)
 
         "${test_file}"
     )
-    target_link_libraries("${test_target_name}" leveldb gmock gtest)
+    target_link_libraries("${test_target_name}" leveldb gtest gmock)
     target_compile_definitions("${test_target_name}"
       PRIVATE
         ${LEVELDB_PLATFORM_NAME}=1
@@ -390,7 +390,6 @@ if(LEVELDB_BUILD_TESTS)
       leveldb_test("util/env_posix_test.cc")
     endif (WIN32)
   endif(NOT BUILD_SHARED_LIBS)
-endif(LEVELDB_BUILD_TESTS)
 
 if(LEVELDB_BUILD_BENCHMARKS)
   function(leveldb_benchmark bench_file)
@@ -450,6 +449,7 @@ int main() {
     target_link_libraries(db_bench_tree_db kyotocabinet)
   endif(HAVE_KYOTOCABINET)
 endif(LEVELDB_BUILD_BENCHMARKS)
+endif(LEVELDB_BUILD_TESTS)
 
 if(LEVELDB_INSTALL)
   install(TARGETS leveldb
