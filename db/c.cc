@@ -429,7 +429,7 @@ void leveldb_options_set_compression(leveldb_options_t* opt, int t) {
     case 0:
       opt->rep.compressors[0] = nullptr;
       break;
-#ifdef SNAPPY
+#ifdef HAVE_SNAPPY
     case leveldb_snappy_compression:
       opt->rep.compressors[0] = new leveldb::SnappyCompressor();
       break;
@@ -439,6 +439,7 @@ void leveldb_options_set_compression(leveldb_options_t* opt, int t) {
       break;
     case leveldb_zlib_raw_compression:
       opt->rep.compressors[0] = new leveldb::ZlibCompressorRaw();
+      opt->rep.compressors[1] = new leveldb::ZlibCompressor();
       break;
   }
 }

@@ -37,7 +37,7 @@
 
 #define ZLIB
 
-#ifdef SNAPPY
+#ifdef HAVE_SNAPPY
 	#include <snappy/snappy.h>
 #elif defined(ZLIB)
 	#include <zlib/zlib.h>

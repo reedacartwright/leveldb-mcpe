@@ -144,6 +144,7 @@ target_sources(leveldb
     "db/memtable.h"
     "db/repair.cc"
     "db/skiplist.h"
+    "db/snappy_compressor.cc"
     "db/snapshot.h"
     "db/table_cache.cc"
     "db/table_cache.h"
@@ -288,6 +289,9 @@ endif(HAVE_TCMALLOC)
 # Needed by port_stdcxx.h
 find_package(Threads REQUIRED)
 target_link_libraries(leveldb Threads::Threads)
+
+find_package(ZLIB REQUIRED)
+target_link_libraries(leveldb ZLIB::ZLIB)
 
 add_executable(leveldbutil
   "db/leveldbutil.cc"

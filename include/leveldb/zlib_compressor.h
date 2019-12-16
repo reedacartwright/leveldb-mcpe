@@ -1,5 +1,5 @@
-
-#pragma once
+#ifndef LEVELDB_MCPE_INCLUDE_ZLIB_COMPRESSOR_H_
+#define LEVELDB_MCPE_INCLUDE_ZLIB_COMPRESSOR_H_
 
 #include "leveldb/compressor.h"
 
@@ -13,9 +13,7 @@ namespace leveldb {
 		const int compressionLevel;
 		const bool raw;
         
-        virtual ~ZlibCompressorBase() {
-            
-        }
+        virtual ~ZlibCompressorBase() = default;
 
 		ZlibCompressorBase(char uniqueCompressionID, int compressionLevel, bool raw) :
 			Compressor(uniqueCompressionID),
@@ -55,3 +53,5 @@ namespace leveldb {
 		}
 	};
 }
+
+#endif

@@ -273,7 +273,7 @@ class DBTest : public testing::Test {
         options.filter_policy = filter_policy_;
         break;
       case kUncompressed:
-        options.compression = kNoCompression;
+        options.compressors[0] = nullptr;
         break;
       default:
         break;
@@ -1124,7 +1124,7 @@ TEST_F(DBTest, RepeatedWritesToSameKey) {
 
 TEST_F(DBTest, SparseMerge) {
   Options options = CurrentOptions();
-  options.compression = kNoCompression;
+  options.compressors[0] = nullptr;
   Reopen(&options);
 
   FillLevels("A", "Z");
@@ -1176,7 +1176,7 @@ TEST_F(DBTest, ApproximateSizes) {
   do {
     Options options = CurrentOptions();
     options.write_buffer_size = 100000000;  // Large write buffer
-    options.compression = kNoCompression;
+    options.compressors[0] = nullptr;
     DestroyAndReopen();
 
     ASSERT_TRUE(Between(Size("", "xyz"), 0, 0));
@@ -1234,7 +1234,7 @@ TEST_F(DBTest, ApproximateSizes) {
 TEST_F(DBTest, ApproximateSizes_MixOfSmallAndLarge) {
   do {
     Options options = CurrentOptions();
-    options.compression = kNoCompression;
+    options.compressors[0] = nullptr;
     Reopen();
 
     Random rnd(301);
@@ -2083,7 +2083,7 @@ class ModelDB : public DB {
       sizes[i] = 0;
     }
   }
-  virtual void CompactRange(const Slice* start, const Slice* end) {
+  virtual void CompactRange(const Slice* start, const Slice* end) override {
   }
 
  private:
