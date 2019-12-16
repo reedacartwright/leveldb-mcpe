@@ -15,6 +15,7 @@
 #include "table/format.h"
 #include "util/coding.h"
 #include "util/crc32c.h"
+#include "leveldb/compressor.h"
 
 namespace leveldb {
 
@@ -148,41 +149,40 @@ void TableBuilder::WriteBlock(BlockBuilder* block, BlockHandle* handle) {
   Slice raw = block->Finish();
 
   Slice block_contents;
-  CompressionType type = r->options.compression;
-  // TODO(postrelease): Support more compression options: zlib?
-  switch (type) {
-    case kNoCompression:
-      block_contents = raw;
-      break;
+  auto compressor = r->options.compressors[0];
 
-    case kSnappyCompression: {
-      std::string* compressed = &r->compressed_output;
-      if (port::Snappy_Compress(raw.data(), raw.size(), compressed) &&
-          compressed->size() < raw.size() - (raw.size() / 8u)) {
-        block_contents = *compressed;
+  // TODO(postrelease): Support more compression options: zlib?
+  if (compressor) {
+ 		std::string& compressed = r->compressed_output;
+		compressor->compress(raw.data(), raw.size(), compressed);
+
+      if ( compressed.size() < raw.size() - (raw.size() / 8u)) {
+        block_contents = compressed;
       } else {
         // Snappy not supported, or compressed less than 12.5%, so just
         // store uncompressed form
         block_contents = raw;
-        type = kNoCompression;
+		compressor = nullptr;
       }
-      break;
-    }
   }
-  WriteRawBlock(block_contents, type, handle);
+  else 
+	  block_contents = raw;
+
+  WriteRawBlock(block_contents, compressor, handle);
   r->compressed_output.clear();
   block->Reset();
 }
 
 void TableBuilder::WriteRawBlock(const Slice& block_contents,
-                                 CompressionType type, BlockHandle* handle) {
+                                 Compressor* compressor,
+                                 BlockHandle* handle) {
   Rep* r = rep_;
   handle->set_offset(r->offset);
   handle->set_size(block_contents.size());
   r->status = r->file->Append(block_contents);
   if (r->status.ok()) {
     char trailer[kBlockTrailerSize];
-    trailer[0] = type;
+	trailer[0] = compressor ? compressor->uniqueCompressionID : 0;
     uint32_t crc = crc32c::Value(block_contents.data(), block_contents.size());
     crc = crc32c::Extend(crc, trailer, 1);  // Extend crc to cover block type
     EncodeFixed32(trailer + 1, crc32c::Mask(crc));

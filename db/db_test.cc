@@ -2083,7 +2083,8 @@ class ModelDB : public DB {
       sizes[i] = 0;
     }
   }
-  void CompactRange(const Slice* start, const Slice* end) override {}
+  virtual void CompactRange(const Slice* start, const Slice* end) {
+  }
 
  private:
   class ModelIter : public Iterator {

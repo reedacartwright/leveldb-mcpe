@@ -5,10 +5,13 @@
 #include "table/format.h"
 
 #include "leveldb/env.h"
+#include "leveldb/compressor.h"
 #include "port/port.h"
 #include "table/block.h"
 #include "util/coding.h"
 #include "util/crc32c.h"
+#include "leveldb/decompress_allocator.h"
+#include <map>
 
 namespace leveldb {
 
@@ -21,7 +24,8 @@ void BlockHandle::EncodeTo(std::string* dst) const {
 }
 
 Status BlockHandle::DecodeFrom(Slice* input) {
-  if (GetVarint64(input, &offset_) && GetVarint64(input, &size_)) {
+  if (GetVarint64(input, &offset_) &&
+      GetVarint64(input, &size_)) {
     return Status::OK();
   } else {
     return Status::Corruption("bad block handle");
@@ -61,7 +65,7 @@ Status Footer::DecodeFrom(Slice* input) {
   return result;
 }
 
-Status ReadBlock(RandomAccessFile* file, const ReadOptions& options,
+Status ReadBlock(RandomAccessFile* file, const Options& dbOptions, const ReadOptions& options,
                  const BlockHandle& handle, BlockContents* result) {
   result->data = Slice();
   result->cachable = false;
@@ -94,48 +98,66 @@ Status ReadBlock(RandomAccessFile* file, const ReadOptions& options,
     }
   }
 
-  switch (data[n]) {
-    case kNoCompression:
-      if (data != buf) {
-        // File implementation gave us pointer to some other data.
-        // Use it directly under the assumption that it will be live
-        // while the file is open.
-        delete[] buf;
-        result->data = Slice(data, n);
-        result->heap_allocated = false;
-        result->cachable = false;  // Do not double-cache
-      } else {
-        result->data = Slice(buf, n);
-        result->heap_allocated = true;
-        result->cachable = true;
-      }
+		unsigned char compressionID = data[n];
 
-      // Ok
-      break;
-    case kSnappyCompression: {
-      size_t ulength = 0;
-      if (!port::Snappy_GetUncompressedLength(data, n, &ulength)) {
-        delete[] buf;
-        return Status::Corruption("corrupted compressed block contents");
-      }
-      char* ubuf = new char[ulength];
-      if (!port::Snappy_Uncompress(data, n, ubuf)) {
-        delete[] buf;
-        delete[] ubuf;
-        return Status::Corruption("corrupted compressed block contents");
-      }
-      delete[] buf;
-      result->data = Slice(ubuf, ulength);
-      result->heap_allocated = true;
-      result->cachable = true;
-      break;
-    }
-    default:
-      delete[] buf;
-      return Status::Corruption("bad block type");
-  }
+		if (compressionID == 0) {
+			if (data != buf) {
+				// File implementation gave us pointer to some other data.
+				// Use it directly under the assumption that it will be live
+				// while the file is open.
+				delete[] buf;
+				result->data = Slice(data, n);
+				result->heap_allocated = false;
+				result->cachable = false;  // Do not double-cache
+			}
+			else {
+				result->data = Slice(buf, n);
+				result->heap_allocated = true;
+				result->cachable = true;
+			}
+		}
+		else {
 
-  return Status::OK();
-}
+			//find the required compressor
+			Compressor* compressor = nullptr;
+			for (auto& c : dbOptions.compressors) {
+				if (!c || c->uniqueCompressionID == compressionID) {
+					compressor = c;
+					break;
+				}
+			}
 
+			if (compressor == nullptr) {
+				delete[] buf;
+				return Status::NotSupported("encountered a block compressed with an unknown decompressor");
+			}
+
+			std::string buffer;
+			if (options.decompress_allocator) {
+				buffer = options.decompress_allocator->get();
+			}
+
+			bool success = compressor->decompress(data, n, buffer);
+
+			if (success) {
+				auto ubuf = new char[buffer.size()];
+				memcpy(ubuf, buffer.data(), buffer.size());
+				result->data = Slice(ubuf, buffer.size());
+				result->heap_allocated = true;
+				result->cachable = true;
+			}
+
+			delete[] buf;
+			
+			if (options.decompress_allocator) {
+				options.decompress_allocator->release(std::move(buffer));
+			}
+
+			if (!success) {
+				return Status::Corruption("corrupted compressed block contents");
+			}
+		}
+
+		return Status::OK();
+	}
 }  // namespace leveldb

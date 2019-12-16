@@ -59,7 +59,7 @@ Status Table::Open(const Options& options, RandomAccessFile* file,
     if (options.paranoid_checks) {
       opt.verify_checksums = true;
     }
-    s = ReadBlock(file, opt, footer.index_handle(), &index_block_contents);
+    s = ReadBlock(file, options, opt, footer.index_handle(), &index_block_contents);
   }
 
   if (s.ok()) {
@@ -124,7 +124,7 @@ void Table::ReadFilter(const Slice& filter_handle_value) {
     opt.verify_checksums = true;
   }
   BlockContents block;
-  if (!ReadBlock(rep_->file, opt, filter_handle, &block).ok()) {
+  if (!ReadBlock(rep_->file, rep_->options, opt, filter_handle, &block).ok()) {
     return;
   }
   if (block.heap_allocated) {

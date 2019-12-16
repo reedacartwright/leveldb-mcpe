@@ -85,6 +85,7 @@ class FileState {
 
     assert(offset / kBlockSize <= std::numeric_limits<size_t>::max());
     size_t block = static_cast<size_t>(offset / kBlockSize);
+
     size_t block_offset = offset % kBlockSize;
     size_t bytes_to_copy = n;
     char* dst = scratch;
@@ -171,6 +172,7 @@ class SequentialFileImpl : public SequentialFile {
       return Status::IOError("pos_ > file_->Size()");
     }
     const uint64_t available = file_->Size() - pos_;
+
     if (n > available) {
       n = available;
     }

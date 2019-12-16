@@ -442,7 +442,7 @@ class Repairer {
 };
 }  // namespace
 
-Status RepairDB(const std::string& dbname, const Options& options) {
+DLLX Status RepairDB(const std::string& dbname, const Options& options) {
   Repairer repairer(dbname, options);
   return repairer.Run();
 }

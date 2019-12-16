@@ -34,7 +34,7 @@ Block::Block(const BlockContents& contents)
       // The size is too small for NumRestarts()
       size_ = 0;
     } else {
-      restart_offset_ = size_ - (1 + NumRestarts()) * sizeof(uint32_t);
+      restart_offset_ = (uint32_t)size_ - (1 + NumRestarts()) * sizeof(uint32_t);
     }
   }
 }
@@ -93,7 +93,7 @@ class Block::Iter : public Iterator {
   }
 
   // Return the offset in data_ just past the end of the current entry.
-  inline uint32_t NextEntryOffset() const {
+  inline uint64_t NextEntryOffset() const {
     return (value_.data() + value_.size()) - data_;
   }
 
@@ -223,7 +223,7 @@ class Block::Iter : public Iterator {
   }
 
   bool ParseNextKey() {
-    current_ = NextEntryOffset();
+    current_ = (uint32_t)NextEntryOffset();
     const char* p = data_ + current_;
     const char* limit = data_ + restarts_;  // Restarts come right after data
     if (p >= limit) {

@@ -11,4 +11,6 @@ namespace leveldb {
 
 Options::Options() : comparator(BytewiseComparator()), env(Env::Default()) {}
 
+	memset(compressors, 0, sizeof(compressors));
+}
 }  // namespace leveldb

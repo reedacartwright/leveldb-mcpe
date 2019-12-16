@@ -17,17 +17,8 @@ class Env;
 class FilterPolicy;
 class Logger;
 class Snapshot;
-
-// DB contents are stored in a set of blocks, each of which holds a
-// sequence of key,value pairs.  Each block may be compressed before
-// being stored in a file.  The following enum describes which
-// compression method (if any) is used to compress a block.
-enum CompressionType {
-  // NOTE: do not change the values of existing entries, as these are
-  // part of the persistent format on disk.
-  kNoCompression = 0x0,
-  kSnappyCompression = 0x1
-};
+class Compressor;
+class DecompressAllocator;
 
 // Options to control the behavior of a database (passed to DB::Open)
 struct LEVELDB_EXPORT Options {
@@ -128,7 +119,7 @@ struct LEVELDB_EXPORT Options {
   // worth switching to kNoCompression.  Even if the input data is
   // incompressible, the kSnappyCompression implementation will
   // efficiently detect that and will switch to uncompressed mode.
-  CompressionType compression = kSnappyCompression;
+  Compressor* compressors[256];
 
   // EXPERIMENTAL: If true, append to existing MANIFEST and log files
   // when a database is opened.  This can significantly speed up open.
@@ -159,6 +150,7 @@ struct LEVELDB_EXPORT ReadOptions {
   // not have been released).  If "snapshot" is null, use an implicit
   // snapshot of the state at the beginning of this read operation.
   const Snapshot* snapshot = nullptr;
+  DecompressAllocator* decompress_allocator = nullptr;
 };
 
 // Options that control write operations

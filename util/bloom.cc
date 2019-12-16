@@ -85,7 +85,7 @@ class BloomFilterPolicy : public FilterPolicy {
 };
 }  // namespace
 
-const FilterPolicy* NewBloomFilterPolicy(int bits_per_key) {
+DLLX const FilterPolicy* NewBloomFilterPolicy(int bits_per_key) {
   return new BloomFilterPolicy(bits_per_key);
 }
 
