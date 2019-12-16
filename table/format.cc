@@ -15,6 +15,28 @@
 
 namespace leveldb {
 
+std::string DecompressAllocator::get() {
+  std::string buffer;
+  std::lock_guard<std::mutex> lock(mutex);
+
+  if (!stack.empty()) {
+    buffer = std::move(stack.back());
+    buffer.clear();
+    stack.pop_back();
+  }
+  return buffer;
+}
+
+void DecompressAllocator::release(std::string&& string) {
+  std::lock_guard<std::mutex> lock(mutex);
+  stack.push_back(std::move(string));
+}
+
+void DecompressAllocator::prune() {
+  std::lock_guard<std::mutex> lock(mutex);
+  stack.clear();
+}
+
 void BlockHandle::EncodeTo(std::string* dst) const {
   // Sanity check that all fields have been set
   assert(offset_ != ~static_cast<uint64_t>(0));
