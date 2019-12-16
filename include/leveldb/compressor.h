@@ -6,10 +6,12 @@
 #include <unordered_map>
 #include <memory>
 
-namespace leveldb {
-	class DLLX Slice;
+#include "leveldb/export.h"
 
-	class DLLX Compressor
+namespace leveldb {
+	class Slice;
+
+	class LEVELDB_EXPORT Compressor
 	{
 	public:
 

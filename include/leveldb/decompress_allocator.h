@@ -7,8 +7,10 @@
 #include <vector>
 #include <string>
 
+#include "leveldb/export.h"
+
 namespace leveldb {
-	class DLLX DecompressAllocator {
+	class LEVELDB_EXPORT DecompressAllocator {
 	public:
 		virtual ~DecompressAllocator();
 

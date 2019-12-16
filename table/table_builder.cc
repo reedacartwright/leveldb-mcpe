@@ -205,7 +205,7 @@ Status TableBuilder::Finish() {
 
   // Write filter block
   if (ok() && r->filter_block != nullptr) {
-    WriteRawBlock(r->filter_block->Finish(), kNoCompression,
+    WriteRawBlock(r->filter_block->Finish(), nullptr,
                   &filter_block_handle);
   }
 

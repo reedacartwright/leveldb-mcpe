@@ -93,7 +93,7 @@ void Table::ReadMeta(const Footer& footer) {
     opt.verify_checksums = true;
   }
   BlockContents contents;
-  if (!ReadBlock(rep_->file, opt, footer.metaindex_handle(), &contents).ok()) {
+  if (!ReadBlock(rep_->file, rep_->options, opt, footer.metaindex_handle(), &contents).ok()) {
     // Do not propagate errors since meta info is not needed for operation
     return;
   }
@@ -176,7 +176,7 @@ Iterator* Table::BlockReader(void* arg, const ReadOptions& options,
       if (cache_handle != nullptr) {
         block = reinterpret_cast<Block*>(block_cache->Value(cache_handle));
       } else {
-        s = ReadBlock(table->rep_->file, options, handle, &contents);
+        s = ReadBlock(table->rep_->file, table->rep_->options, options, handle, &contents);
         if (s.ok()) {
           block = new Block(contents);
           if (contents.cachable && options.fill_cache) {
@@ -186,7 +186,7 @@ Iterator* Table::BlockReader(void* arg, const ReadOptions& options,
         }
       }
     } else {
-      s = ReadBlock(table->rep_->file, options, handle, &contents);
+      s = ReadBlock(table->rep_->file, table->rep_->options, options, handle, &contents);
       if (s.ok()) {
         block = new Block(contents);
       }

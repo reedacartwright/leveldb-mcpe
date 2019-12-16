@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#include <memory>
+
 #include "leveldb/options.h"
 
 #include "leveldb/comparator.h"
@@ -9,8 +11,8 @@
 
 namespace leveldb {
 
-Options::Options() : comparator(BytewiseComparator()), env(Env::Default()) {}
-
-	memset(compressors, 0, sizeof(compressors));
+Options::Options() : comparator(BytewiseComparator()), env(Env::Default()) {
+	::memset(compressors, 0, sizeof(compressors));
 }
+
 }  // namespace leveldb

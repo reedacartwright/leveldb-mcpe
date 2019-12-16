@@ -1,9 +1,9 @@
 #pragma once
 
-#include "compressor.h"
+#include "leveldb/compressor.h"
 
 namespace leveldb {
-	class DLLX SnappyCompressor : public Compressor 
+	class LEVELDB_EXPORT SnappyCompressor : public Compressor 
 	{
 	public:
 
