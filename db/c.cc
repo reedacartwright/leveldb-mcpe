@@ -44,6 +44,7 @@ using leveldb::Status;
 using leveldb::WritableFile;
 using leveldb::WriteBatch;
 using leveldb::WriteOptions;
+using leveldb::Compressor;
 
 extern "C" {
 
@@ -85,6 +86,9 @@ struct leveldb_logger_t {
 };
 struct leveldb_filelock_t {
   FileLock* rep;
+};
+struct leveldb_compressor_t {
+  Compressor* rep;
 };
 
 struct leveldb_comparator_t : public Comparator {
@@ -427,23 +431,37 @@ void leveldb_options_set_max_file_size(leveldb_options_t* opt, size_t s) {
   opt->rep.max_file_size = s;
 }
 
-void leveldb_options_set_compression(leveldb_options_t* opt, int t) {
+leveldb_compressor_t* leveldb_compressor_create(int t, int l) {
+  leveldb_compressor_t* result = new leveldb_compressor_t;
+  result->rep = nullptr;
   switch(t) {
-    case 0:
-      opt->rep.compressors[0] = nullptr;
+    case leveldb_no_compression:
+      result->rep = nullptr;
       break;
 #if HAVE_SNAPPY
     case leveldb_snappy_compression:
-      opt->rep.compressors[0] = new leveldb::SnappyCompressor();
+      result->rep = new leveldb::SnappyCompressor();
       break;
 #endif
     case leveldb_zlib_compression:
-      opt->rep.compressors[0] = new leveldb::ZlibCompressor();
+      result->rep = new leveldb::ZlibCompressor(l);
       break;
     case leveldb_zlib_raw_compression:
-      opt->rep.compressors[0] = new leveldb::ZlibCompressorRaw();
-      opt->rep.compressors[1] = new leveldb::ZlibCompressor();
+      result->rep = new leveldb::ZlibCompressorRaw(l);
       break;
+    default:
+      break;
+  }
+  return result;
+}
+void leveldb_compressor_destroy(leveldb_compressor_t* compressor) {
+  delete compressor->rep;
+  delete compressor;
+}
+
+void leveldb_options_set_compressor(leveldb_options_t* opt, size_t pos, leveldb_compressor_t* c) {
+  if(pos < 256) {
+    opt->rep.compressors[pos] = (c ? c->rep : nullptr);
   }
 }
 
