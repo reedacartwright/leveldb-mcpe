@@ -3,24 +3,25 @@
 # found in the LICENSE file. See the AUTHORS file for names of contributors.
 
 cmake_minimum_required(VERSION 3.9)
+
 # Keep the version below in sync with the one in db.h
 project(leveldb VERSION 1.23.0 LANGUAGES C CXX)
 
-# C standard can be overridden when this is used as a sub-project.
-if(NOT CMAKE_C_STANDARD)
-  # This project can use C11, but will gracefully decay down to C89.
-  set(CMAKE_C_STANDARD 11)
-  set(CMAKE_C_STANDARD_REQUIRED OFF)
-  set(CMAKE_C_EXTENSIONS OFF)
-endif(NOT CMAKE_C_STANDARD)
+# # C standard can be overridden when this is used as a sub-project.
+# if(NOT CMAKE_C_STANDARD)
+#   # This project can use C11, but will gracefully decay down to C89.
+#   set(CMAKE_C_STANDARD 11)
+#   set(CMAKE_C_STANDARD_REQUIRED OFF)
+#   set(CMAKE_C_EXTENSIONS OFF)
+# endif(NOT CMAKE_C_STANDARD)
 
-# C++ standard can be overridden when this is used as a sub-project.
-if(NOT CMAKE_CXX_STANDARD)
-  # This project requires C++11.
-  set(CMAKE_CXX_STANDARD 11)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif(NOT CMAKE_CXX_STANDARD)
+# # C++ standard can be overridden when this is used as a sub-project.
+# if(NOT CMAKE_CXX_STANDARD)
+#   # This project requires C++11.
+#   set(CMAKE_CXX_STANDARD 11)
+#   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#   set(CMAKE_CXX_EXTENSIONS OFF)
+# endif(NOT CMAKE_CXX_STANDARD)
 
 if (WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_WINDOWS)
@@ -79,7 +80,7 @@ endif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 # Test whether -Wthread-safety is available. See
 # https://clang.llvm.org/docs/ThreadSafetyAnalysis.html
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-Wthread-safety HAVE_CLANG_THREAD_SAFETY)
+#check_cxx_compiler_flag(-Wthread-safety HAVE_CLANG_THREAD_SAFETY)
 
 # Used by googletest.
 check_cxx_compiler_flag(-Wno-missing-field-initializers
@@ -117,6 +118,7 @@ endif(BUILD_SHARED_LIBS)
 include(GNUInstallDirs)
 
 add_library(leveldb "")
+target_compile_features(leveldb PUBLIC cxx_std_11 c_std_11)
 target_sources(leveldb
   PRIVATE
     "${PROJECT_BINARY_DIR}/${LEVELDB_PORT_CONFIG_DIR}/port_config.h"
@@ -267,11 +269,11 @@ if(BUILD_SHARED_LIBS)
   )
 endif(BUILD_SHARED_LIBS)
 
-if(HAVE_CLANG_THREAD_SAFETY)
-  target_compile_options(leveldb
-    PUBLIC
-      -Werror -Wthread-safety)
-endif(HAVE_CLANG_THREAD_SAFETY)
+# if(HAVE_CLANG_THREAD_SAFETY)
+#   target_compile_options(leveldb
+#     PUBLIC
+#       -Wthread-safety)
+# endif(HAVE_CLANG_THREAD_SAFETY)
 
 if(HAVE_CRC32C)
   target_link_libraries(leveldb crc32c)
@@ -284,16 +286,17 @@ if(HAVE_TCMALLOC)
 endif(HAVE_TCMALLOC)
 
 # Needed by port_stdcxx.h
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(leveldb Threads::Threads)
 
 find_package(ZLIB REQUIRED)
 target_link_libraries(leveldb ZLIB::ZLIB)
 
-add_executable(leveldbutil
-  "db/leveldbutil.cc"
-)
-target_link_libraries(leveldbutil leveldb)
+# add_executable(leveldbutil
+# "db/leveldbutil.cc"
+# )
+# target_link_libraries(leveldbutil leveldb)
 
 if(LEVELDB_BUILD_TESTS)
   enable_testing()
