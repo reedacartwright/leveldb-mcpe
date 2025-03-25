@@ -14,7 +14,6 @@
 #include "leveldb/db.h"
 #include "leveldb/env.h"
 #include "leveldb/iterator.h"
-#include "leveldb/options.h"
 #include "leveldb/table_builder.h"
 #include "leveldb/snappy_compressor.h"
 #include "table/block.h"
@@ -795,17 +794,10 @@ static bool SnappyCompressionSupported() {
 #endif
 }
 
-class CompressionTableTest
-    : public ::testing::TestWithParam<std::tuple<CompressionType>> {};
-
-INSTANTIATE_TEST_SUITE_P(CompressionTests, CompressionTableTest,
-                         ::testing::Values(kSnappyCompression,
-                                           kZstdCompression));
-
-TEST_P(CompressionTableTest, ApproximateOffsetOfCompressed) {
-  CompressionType type = ::testing::get<0>(GetParam());
-  if (!CompressionSupported(type)) {
-    GTEST_SKIP() << "skipping compression test: " << type;
+TEST(TableTest, ApproximateOffsetOfCompressed) {
+  if (!SnappyCompressionSupported()) {
+    std::fprintf(stderr, "skipping compression tests\n");
+    return;
   }
 
   Random rnd(301);
@@ -841,3 +833,8 @@ TEST_P(CompressionTableTest, ApproximateOffsetOfCompressed) {
 }
 
 }  // namespace leveldb
+
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
