@@ -519,10 +519,12 @@ class PosixEnv : public Env {
  public:
   PosixEnv();
   ~PosixEnv() override {
+#if !defined(NDEBUG)
     static const char msg[] =
         "PosixEnv singleton destroyed. Unsupported behavior!\n";
     std::fwrite(msg, 1, sizeof(msg), stderr);
     std::abort();
+#endif // !defined(NDEBUG)
   }
 
   Status NewSequentialFile(const std::string& filename,
